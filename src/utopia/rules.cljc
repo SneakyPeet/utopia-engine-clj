@@ -52,16 +52,33 @@
   =>
   (insert! (->AvailableAction (->Restart))))
 
+
+;; Movement
+
+(defrule go-to-workshop
+  [Execute (=GoToWorkshop? action)]
+  =>
+  (insert! (->EffectState (->ChangeLocation :workshop))))
+
 ;; Search
 
 (defrule can-search-when-searchable-regions-and-in-workshop
-  [StateEntity (=Location? entity) (= :workshop (:location entity))]
+  [:or
+   [StateEntity (=Location? entity) (= :workshop (:location entity))]
+   [EffectState (=ChangeLocation? effect) (= :workshop (:location effect))]]
   [?regions <- (acc/all) :from [StateEntity (=Region? entity) (true? (:searchable? entity))]]
   [:test (not (empty? ?regions))]
   =>
   (insert! (->AvailableAction (->Search))))
 
 
+(defrule search-lets-you-choose-searchable-regions
+  [Execute (=Search? action)]
+  [?regions <- (acc/all :entity) :from [StateEntity (=Region? entity) (true? (:searchable? entity))]]
+  =>
+  (insert! (->EffectState (->ChangeLocation :outside)))
+  (insert! (->AvailableAction (->GoToWorkshop)))
+  (insert-all! (map #(->AvailableAction (->SearchArea (:id %))) ?regions)))
 
 
 (defrule resting-takes-time
@@ -71,11 +88,18 @@
 
 
 ;; Effecfs
-(defrule initialize-state
+
+(defrule initialize-state-effect
   [EffectState (=Initialize? effect)]
   =>
   1
   (insert! (->StateChange (constantly (u/initial-state)))))
+
+
+(defrule location-change-effect
+  [EffectState (=ChangeLocation? effect) (= ?location (:location effect))]
+  =>
+  (insert! (->StateChange #(assoc % :location ?location))))
 
 
 ;;;; Queries
@@ -131,8 +155,9 @@
 
 
   (-> (run initial-game-state (->StartGame))
-      (run (->Rest))
-      :actions)
+      (run (->Search))
+      (run (->GoToWorkshop))
+      (select-keys [:actions :state]))
 
   (run initial-game-state (->Rest))
 

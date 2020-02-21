@@ -2,19 +2,23 @@
   (:require #?(:clj [utopia.macros :refer [defentity]])))
 
 
-(defprotocol Action)
+;;;; Actions
 
-(defentity StartGame [] Action)
-(defentity Restart [] Action)
-(defentity Rest [] Action)
-(defentity Search [] Action)
+(defentity StartGame [])
+(defentity Restart [])
+(defentity Rest [])
+(defentity GoToWorkshop [])
+
+(defentity Search [])
+(defentity SearchRegion [id])
 
 
-(defprotocol Effect)
+;;;; Effects
 
-(defentity Initialize [] Effect)
-(defentity AddDayOnTimeTrack [] Effect)
-(defentity RemoveDayFromTimeTrack [] Effect)
+(defentity Initialize [])
+(defentity ChangeLocation [location])
+(defentity AddDayOnTimeTrack [])
+(defentity RemoveDayFromTimeTrack [])
 
 
 ;;;; Universe
@@ -24,4 +28,3 @@
    day-tracker days-searched
    construct component treasure
    search-areas])
-
