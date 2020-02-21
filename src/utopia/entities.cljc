@@ -12,5 +12,16 @@
 
 (defprotocol Effect)
 
+(defentity Initialize [] Effect)
 (defentity AddDayOnTimeTrack [] Effect)
 (defentity RemoveDayFromTimeTrack [] Effect)
+
+
+;;;; Universe
+(defentity Location [location])
+(defentity Region
+  [id number name
+   day-tracker days-searched
+   construct component treasure
+   search-areas])
+
