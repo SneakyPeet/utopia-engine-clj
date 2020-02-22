@@ -1,5 +1,5 @@
-(ns utopia.universe
-  (:require [utopia.entities :refer :all]))
+(ns utopia.core.universe
+  (:require [utopia.core.entities :refer :all]))
 
 
 (defn- initial-search []
@@ -38,5 +38,5 @@
 
 
 (defn initial-state []
-  {:location :workshop
+  {:location (->Location :workshop)
    :regions (regions)})

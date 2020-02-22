@@ -1,115 +1,115 @@
-(ns utopia.rules
+(ns utopia.core.rules
   (:require [clara.rules :refer :all]
             [clara.rules.accumulators :as acc]
-            [utopia.entities :refer :all]
-            [utopia.universe :as u]))
+            [utopia.core.entities :refer :all]
+            [utopia.core.universe :as u]))
 
 (clear-ns-productions!)
 
-;;;; BoilerPlate
-(defrecord Execute [action])
-(defrecord AvailableAction [action])
-(defrecord AllowedActions [actions])
-(defrecord EffectState [effect])
-(defrecord StateChange [f])
-(defrecord OldState [state])
+;;;; RULE ENTITIES
+(defrecord CurrentAction [action])
+(defrecord NextAction [action])
+(defrecord Effect [effect])
 (defrecord StateEntity [entity])
-(defrecord NewState [state])
+
+(defrecord PreviousActions [actions])
+(defrecord PreviousState [state])
+(defrecord NextState [state])
+
+(defrecord StateChange [f])
 (defrecord GameError [message])
 
-;;;; Core Rules
 
-
-;; BoilerPlate
+;; BOILERPLATE RULES
 
 (defrule only-apply-available-actions
-  [AllowedActions (= ?actions actions)]
-  [Execute (= ?action action) (= ?action-type (type ?action))]
+  [PreviousActions (= ?actions actions)]
+  [CurrentAction (= ?action action) (= ?action-type (type ?action))]
   [:test (not (contains? (set (map type ?actions)) ?action-type))]
   =>
   (insert! (->GameError (str "Invalid Action: " ?action-type))))
 
 
 (defrule apply-all-state-changes
-  [OldState (= ?state state)]
+  [PreviousState (= ?state state)]
   [?state-change-fns <- (acc/all :f) :from [StateChange]]
   =>
   (insert!
-   (->NewState
+   (->NextState
     (reduce (fn [r f] (f r)) ?state ?state-change-fns))))
 
 
 (defrule start-game-triggered
-  [Execute (=StartGame? action)]
+  [CurrentAction (=StartGame? action)]
   =>
-  (insert! (->EffectState (->Initialize)))
-  (insert! (->AvailableAction (->Search)))
-  (insert! (->AvailableAction (->Rest))))
+  (insert! (->Effect (->Initialize)))
+  (insert! (->NextAction (->Search)))
+  (insert! (->NextAction (->Rest))))
 
 
 (defrule allow-restart-once-game-started
-  [OldState (not (nil? state))]
+  [PreviousState (not (nil? state))]
   =>
-  (insert! (->AvailableAction (->Restart))))
+  (insert! (->NextAction (->Restart))))
 
 
 ;; Movement
 
 (defrule go-to-workshop
-  [Execute (=GoToWorkshop? action)]
+  [CurrentAction (=GoToWorkshop? action)]
   =>
-  (insert! (->EffectState (->ChangeLocation :workshop))))
+  (insert! (->Effect (->ChangeLocation :workshop))))
 
 ;; Search
 
 (defrule can-search-when-searchable-regions-and-in-workshop
   [:or
    [StateEntity (=Location? entity) (= :workshop (:location entity))]
-   [EffectState (=ChangeLocation? effect) (= :workshop (:location effect))]]
+   [Effect (=ChangeLocation? effect) (= :workshop (:location effect))]]
   [?regions <- (acc/all) :from [StateEntity (=Region? entity) (true? (:searchable? entity))]]
   [:test (not (empty? ?regions))]
   =>
-  (insert! (->AvailableAction (->Search))))
+  (insert! (->NextAction (->Search))))
 
 
 (defrule search-lets-you-choose-searchable-regions
-  [Execute (=Search? action)]
+  [CurrentAction (=Search? action)]
   [?regions <- (acc/all :entity) :from [StateEntity (=Region? entity) (true? (:searchable? entity))]]
   =>
-  (insert! (->EffectState (->ChangeLocation :outside)))
-  (insert! (->AvailableAction (->GoToWorkshop)))
-  (insert-all! (map #(->AvailableAction (->SearchArea (:id %))) ?regions)))
+  (insert! (->Effect (->ChangeLocation :outside)))
+  (insert! (->NextAction (->GoToWorkshop)))
+  (insert-all! (map #(->NextAction (->SearchRegion (:id %))) ?regions)))
 
 
 (defrule resting-takes-time
-  [Execute (=Rest? action)]
+  [CurrentAction (=Rest? action)]
   =>
-  (insert! (->EffectState (->RemoveDayFromTimeTrack))))
+  (insert! (->Effect (->RemoveDayFromTimeTrack))))
 
 
 ;; Effecfs
 
 (defrule initialize-state-effect
-  [EffectState (=Initialize? effect)]
+  [Effect (=Initialize? effect)]
   =>
   1
   (insert! (->StateChange (constantly (u/initial-state)))))
 
 
 (defrule location-change-effect
-  [EffectState (=ChangeLocation? effect) (= ?location (:location effect))]
+  [Effect (=ChangeLocation? effect) (= ?location (:location effect))]
   =>
-  (insert! (->StateChange #(assoc % :location ?location))))
+  (insert! (->StateChange #(assoc-in % [:location :id] ?location))))
 
 
 ;;;; Queries
 
 (defquery get-new-state []
-  [NewState (= ?state state)])
+  [NextState (= ?state state)])
 
 
 (defquery get-next-actions []
-  [AvailableAction (= ?action action)])
+  [NextAction (= ?action action)])
 
 
 (defquery get-game-errors []
@@ -123,16 +123,16 @@
 (defn- game-state->facts [game-state]
   (let [{:keys [actions state]} game-state
         {:keys [regions location]} state]
-    (->> [[(->AllowedActions actions)
-           (->OldState state)
-           (->StateEntity (->Location location))]
+    (->> [[(->PreviousActions actions)
+           (->PreviousState state)
+           (->StateEntity location)]
           (map ->StateEntity (vals regions))]
          (reduce into))))
 
 
 (defn run [game-state action]
-  (let [session (-> (mk-session 'utopia.rules)
-                    (insert (->Execute action))
+  (let [session (-> (mk-session 'utopia.core.rules)
+                    (insert (->CurrentAction action))
                     (insert-all (game-state->facts game-state))
                     (fire-rules))
         new-state (:?state (first (query session get-new-state)))
@@ -144,7 +144,7 @@
      :state new-state}))
 
 
-(def initial-game-state
+(defn initial-game-state []
   {:actions [(->StartGame)]
    :effects []
    :errors []
@@ -154,12 +154,12 @@
 (comment
 
 
-  (-> (run initial-game-state (->StartGame))
+  (-> (run (initial-game-state) (->StartGame))
       (run (->Search))
       (run (->GoToWorkshop))
       (select-keys [:actions :state]))
 
-  (run initial-game-state (->Rest))
+  (run (initial-game-state) (->Rest))
 
 
   )

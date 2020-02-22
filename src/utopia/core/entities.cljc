@@ -1,5 +1,5 @@
-(ns utopia.entities
-  (:require #?(:clj [utopia.macros :refer [defentity]])))
+(ns utopia.core.entities
+  (:require #?(:clj [utopia.core.macros :refer [defentity]])))
 
 
 ;;;; Actions
@@ -22,7 +22,7 @@
 
 
 ;;;; Universe
-(defentity Location [location])
+(defentity Location [id])
 (defentity Region
   [id number name
    day-tracker days-searched

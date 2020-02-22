@@ -1,4 +1,4 @@
-(ns utopia.macros)
+(ns utopia.core.macros)
 
 
 (defmacro defentity
