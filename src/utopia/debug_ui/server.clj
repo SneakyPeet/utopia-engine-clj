@@ -10,10 +10,6 @@
   <body>
     <div id=\"app\"></div>
     <script src=\"/cljs-out/debug-main.js\" type=\"text/javascript\"></script>
-    <script>
-      window.onload = function () {
-        utopia.debug_ui.core.run();
-      }
   </body>
 </html>")
 
