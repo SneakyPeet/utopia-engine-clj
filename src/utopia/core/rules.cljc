@@ -1,5 +1,8 @@
 (ns utopia.core.rules
-  (:require [clara.rules :refer [defrule defquery mk-session insert! insert insert-all insert-all! clear-ns-productions! fire-rules query]]
+  #?(:cljs (:require-macros [clara.macros :refer [defrule defquery defsession ]]))
+  (:require #?(:clj [clara.rules :refer :all]
+               :cljs [clara.rules :refer [insert insert-all retract clear-ns-productions!
+                                          fire-rules query insert! insert-all! retract!]])
             [clara.rules.accumulators :as acc]
             [utopia.core.entities :as e]
             [utopia.core.universe :as u]))
@@ -130,8 +133,10 @@
          (reduce into))))
 
 
+(defsession session 'utopia.core.rules)
+
 (defn run [game-state action]
-  (let [session (-> (mk-session 'utopia.core.rules)
+  (let [session (-> session #_(mk-session 'utopia.core.rules)
                     (insert (->CurrentAction action))
                     (insert-all (game-state->facts game-state))
                     (fire-rules))

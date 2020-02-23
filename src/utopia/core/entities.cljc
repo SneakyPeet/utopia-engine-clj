@@ -3,6 +3,9 @@
      :cljs (:require-macros [utopia.core.macros :refer [defentity]])))
 
 
+(defprotocol Entity
+  (get-name [this]))
+
 ;;;; Actions
 
 (defentity StartGame [])

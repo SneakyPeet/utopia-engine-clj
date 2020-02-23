@@ -6,15 +6,18 @@
  ::game-state
  :game-state)
 
+
+(rf/reg-sub
+ ::history
+ :history)
+
+
 (rf/reg-sub
  ::rules-state
  (fn [_ _] (rf/subscribe [::game-state]))
  :state)
 
-(rf/reg-sub
- ::available-actions
- (fn [_ _] (rf/subscribe [::game-state]))
- :actions)
+
 
 (rf/reg-sub
  ::effects
