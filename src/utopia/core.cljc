@@ -6,5 +6,5 @@
   (r/initial-game-state))
 
 
-(defn next [state action]
+(defn next-state [state action]
   (r/run state action))

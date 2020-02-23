@@ -8,7 +8,7 @@
         record-class (first args)
         match-f-name (symbol (str "=" record-class "?"))
         e (symbol "e")
-        defn-args [match-f-name [e] (list instance? record-class e)]
+        defn-args [match-f-name [e] (list 'instance? record-class e)]
         match-f (cons 'defn defn-args)
         ]
     (list 'do dr match-f)))

@@ -1,5 +1,5 @@
 (ns utopia.core.universe
-  (:require [utopia.core.entities :refer :all]))
+  (:require [utopia.core.entities :as e]))
 
 
 (defn- initial-search []
@@ -32,11 +32,11 @@
    (map #(merge % {:search-areas (initial-search-areas)
                    :days-searched 0
                    :searchable? true}))
-   (map map->Region)
+   (map e/map->Region)
    (map (juxt :id identity))
    (into {})))
 
 
 (defn initial-state []
-  {:location (->Location :workshop)
+  {:location (e/->Location :workshop)
    :regions (regions)})

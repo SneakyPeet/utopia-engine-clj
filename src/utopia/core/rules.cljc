@@ -1,7 +1,7 @@
 (ns utopia.core.rules
-  (:require [clara.rules :refer :all]
+  (:require [clara.rules :refer [defrule defquery mk-session insert! insert insert-all insert-all! clear-ns-productions! fire-rules query]]
             [clara.rules.accumulators :as acc]
-            [utopia.core.entities :refer :all]
+            [utopia.core.entities :as e]
             [utopia.core.universe :as u]))
 
 (clear-ns-productions!)
@@ -40,64 +40,64 @@
 
 
 (defrule start-game-triggered
-  [CurrentAction (=StartGame? action)]
+  [CurrentAction (e/=StartGame? action)]
   =>
-  (insert! (->Effect (->Initialize)))
-  (insert! (->NextAction (->Search)))
-  (insert! (->NextAction (->Rest))))
+  (insert! (->Effect (e/->Initialize)))
+  (insert! (->NextAction (e/->Search)))
+  (insert! (->NextAction (e/->Rest))))
 
 
 (defrule allow-restart-once-game-started
   [PreviousState (not (nil? state))]
   =>
-  (insert! (->NextAction (->Restart))))
+  (insert! (->NextAction (e/->Restart))))
 
 
 ;; Movement
 
 (defrule go-to-workshop
-  [CurrentAction (=GoToWorkshop? action)]
+  [CurrentAction (e/=GoToWorkshop? action)]
   =>
-  (insert! (->Effect (->ChangeLocation :workshop))))
+  (insert! (->Effect (e/->ChangeLocation :workshop))))
 
 ;; Search
 
 (defrule can-search-when-searchable-regions-and-in-workshop
   [:or
-   [StateEntity (=Location? entity) (= :workshop (:location entity))]
-   [Effect (=ChangeLocation? effect) (= :workshop (:location effect))]]
-  [?regions <- (acc/all) :from [StateEntity (=Region? entity) (true? (:searchable? entity))]]
+   [StateEntity (e/=Location? entity) (= :workshop (:id entity))]
+   [Effect (e/=ChangeLocation? effect) (= :workshop (:id effect))]]
+  [?regions <- (acc/all) :from [StateEntity (e/=Region? entity) (true? (:searchable? entity))]]
   [:test (not (empty? ?regions))]
   =>
-  (insert! (->NextAction (->Search))))
+  (insert! (->NextAction (e/->Search))))
 
 
 (defrule search-lets-you-choose-searchable-regions
-  [CurrentAction (=Search? action)]
-  [?regions <- (acc/all :entity) :from [StateEntity (=Region? entity) (true? (:searchable? entity))]]
+  [CurrentAction (e/=Search? action)]
+  [?regions <- (acc/all :entity) :from [StateEntity (e/=Region? entity) (true? (:searchable? entity))]]
   =>
-  (insert! (->Effect (->ChangeLocation :outside)))
-  (insert! (->NextAction (->GoToWorkshop)))
-  (insert-all! (map #(->NextAction (->SearchRegion (:id %))) ?regions)))
+  (insert! (->Effect (e/->ChangeLocation :outside)))
+  (insert! (->NextAction (e/->GoToWorkshop)))
+  (insert-all! (map #(->NextAction (e/->SearchRegion (:id %))) ?regions)))
 
 
 (defrule resting-takes-time
-  [CurrentAction (=Rest? action)]
+  [CurrentAction (e/=Rest? action)]
   =>
-  (insert! (->Effect (->RemoveDayFromTimeTrack))))
+  (insert! (->Effect (e/->RemoveDayFromTimeTrack))))
 
 
 ;; Effecfs
 
 (defrule initialize-state-effect
-  [Effect (=Initialize? effect)]
+  [Effect (e/=Initialize? effect)]
   =>
   1
   (insert! (->StateChange (constantly (u/initial-state)))))
 
 
 (defrule location-change-effect
-  [Effect (=ChangeLocation? effect) (= ?location (:location effect))]
+  [Effect (e/=ChangeLocation? effect) (= ?location (:location effect))]
   =>
   (insert! (->StateChange #(assoc-in % [:location :id] ?location))))
 
@@ -145,7 +145,7 @@
 
 
 (defn initial-game-state []
-  {:actions [(->StartGame)]
+  {:actions [(e/->StartGame)]
    :effects []
    :errors []
    :state nil})
@@ -154,12 +154,12 @@
 (comment
 
 
-  (-> (run (initial-game-state) (->StartGame))
-      (run (->Search))
-      (run (->GoToWorkshop))
+  (-> (run (initial-game-state) (e/->StartGame))
+      (run (e/->Search))
+      (run (e/->GoToWorkshop))
       (select-keys [:actions :state]))
 
-  (run (initial-game-state) (->Rest))
+  (run (initial-game-state) (e/->Rest))
 
 
   )

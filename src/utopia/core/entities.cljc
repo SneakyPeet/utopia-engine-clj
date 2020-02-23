@@ -1,5 +1,6 @@
 (ns utopia.core.entities
-  (:require #?(:clj [utopia.core.macros :refer [defentity]])))
+  #?(:clj (:require [utopia.core.macros :refer [defentity]])
+     :cljs (:require-macros [utopia.core.macros :refer [defentity]])))
 
 
 ;;;; Actions
@@ -16,7 +17,7 @@
 ;;;; Effects
 
 (defentity Initialize [])
-(defentity ChangeLocation [location])
+(defentity ChangeLocation [id])
 (defentity AddDayOnTimeTrack [])
 (defentity RemoveDayFromTimeTrack [])
 

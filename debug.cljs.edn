@@ -1,0 +1,4 @@
+^{:watch-dirs ["src"]
+  :ring-handler utopia.debug-ui.server/handler}
+{:main     utopia.debug-ui.core
+ :preloads [devtools.preload]}
