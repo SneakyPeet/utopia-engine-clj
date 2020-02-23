@@ -1,29 +1,30 @@
 (ns ^:figwheel-hooks utopia.debug-ui.core
   (:require [reagent.core :as r]
             [re-frame.core :as rf]
-            [utopia.core :as u]
-            [goog.events :as events]))
-
-
-;;;; EVENTS
-
-(rf/reg-event-db
- :initialize
- (fn [_ _]
-   {:game-state (u/start)}))
+            [goog.events :as events]
+            [utopia.debug-ui.events :as evt]
+            [utopia.debug-ui.subs :as subs]))
 
 
 
 
-;;;; START
+(defn app []
+  [:div
+   [:h1 "works"]
+   [:p (str @(rf/subscribe [::subs/game-state]))]
+   [:p (str @(rf/subscribe [::subs/available-actions]))]
+   [:p (str (or @(rf/subscribe [::subs/rules-state]) "nil"))]
+   [:p (str @(rf/subscribe [::subs/effects]))]
+   [:p (str @(rf/subscribe [::subs/errors]))]])
+
 
 (defn mount []
-  (r/render [:h1 "works"] (js/document.getElementById "app")))
+  (r/render (app) (js/document.getElementById "app")))
 
 
 (defn ^:export run
   []
-  (rf/dispatch-sync [:initialize])
+  (rf/dispatch-sync [::evt/initialize])
   (mount))
 
 
