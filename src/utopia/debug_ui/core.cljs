@@ -4,7 +4,8 @@
             [goog.events :as events]
             [utopia.debug-ui.events :as evt]
             [utopia.debug-ui.subs :as subs]
-            [utopia.debug-ui.components.actions :as actions]))
+            [utopia.debug-ui.components.actions :as actions]
+            [utopia.debug-ui.components.state :as state]))
 
 
 (defn app []
@@ -14,6 +15,8 @@
      [actions/actions]]
     [:div.column.is-one-quarter
      [actions/action-history]]
+    [:div.column.is-one-quarter
+     [state/state]]
     [:div.column
      [:h1 "works"]
      [:p (str @(rf/subscribe [::subs/game-state]))]
