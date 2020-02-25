@@ -5,6 +5,15 @@
             [utopia.debug-ui.events :as evt]
             [utopia.core.entities :as e]))
 
+
+(rf/reg-event-db
+ ::->previous-state
+ (fn [db _]
+   (if-let [previous-state (:game-state (first (get-in db [:game-state :history])))]
+     (assoc db :game-state previous-state)
+     db)))
+
+
 (rf/reg-event-db
  ::toggle-map-node
  (fn [db [_ k]]
@@ -48,3 +57,9 @@
     [:div
      [:h1.heading "State"]
      (render-node toggled-nodes current-state)]))
+
+
+(defn previous-state []
+  [:button.button.is-danger.is-small
+   {:on-click #(rf/dispatch [::->previous-state])}
+   "<- BACK"])

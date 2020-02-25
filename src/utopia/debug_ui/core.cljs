@@ -11,6 +11,9 @@
 (defn app []
   [:div.container
    [:div.columns
+    [:div.column
+     [state/previous-state]]]
+   [:div.columns
     [:div.column.is-one-quarter
      [actions/actions]]
     [:div.column.is-one-quarter

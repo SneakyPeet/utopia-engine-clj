@@ -1,46 +1,14 @@
 (ns utopia.core.rules
-  #?(:cljs (:require-macros [clara.macros :refer [defrule defquery defsession ]]))
+  #?(:cljs (:require-macros [clara.macros :refer [defquery defsession]]))
   (:require #?(:clj [clara.rules :refer :all]
-               :cljs [clara.rules :refer [insert insert-all retract clear-ns-productions!
-                                          fire-rules query insert! insert-all! retract!]])
-            [clara.rules.accumulators :as acc]
+               :cljs [clara.rules :refer [insert insert-all clear-ns-productions!
+                                          fire-rules query ]])
             [utopia.core.rules.boilerplate :as b]
             [utopia.core.entities :as e]
-            [utopia.core.universe :as u]))
+            ;rules
+            [utopia.core.rules.game-logic]))
 
 (clear-ns-productions!)
-
-;; BOILERPLATE RULES
-
-#_(defrule only-apply-available-actions
-  [PreviousActions (= ?actions actions)]
-  [CurrentAction (= ?action action) (= ?action-type (type ?action))]
-  [:test (not (contains? (set (map type ?actions)) ?action-type))]
-  =>
-  (insert! (b/->GameError (str "Invalid Action: " ?action-type))))
-
-
-(defrule apply-all-state-changes
-  [:PreviousState  (= ?state (:state this))]
-  [?state-change-fns <- (acc/all :f) :from [:StateChange]]
-  =>
-  (insert!
-   (b/->NextState
-    (reduce (fn [r f] (f r)) ?state ?state-change-fns))))
-
-
-(defrule start-game-triggered
-  [:CurrentAction (e/=StartGame? (:action this))]
-  =>
-  (insert! (b/->Effect (e/->Initialize)))
-  (insert! (b/->NextAction (e/->Search)))
-  (insert! (b/->NextAction (e/->Rest))))
-
-
-#_(defrule allow-restart-once-game-started
-  [PreviousState (not (nil? state))]
-  =>
-  (insert! (->NextAction (e/->Restart))))
 
 
 ;; Movement
@@ -79,14 +47,7 @@
 
 ;; Effecfs
 
-(defrule initialize-state-effect
-  [:Effect (e/=Initialize? (:effect this))]
-  =>
-  1
-  (insert! (b/->StateChange (constantly (u/initial-state)))))
-
-
-(defrule location-change-effect
+#_(defrule location-change-effect
   [:Effect [{effect :effect}] (e/=ChangeLocation? effect) (= ?location (:location effect))]
   =>
   (insert! (b/->StateChange #(assoc-in % [:location :id] ?location))))
@@ -120,7 +81,9 @@
          (reduce into))))
 
 
-(defsession ^:private session 'utopia.core.rules
+(defsession ^:private session
+  'utopia.core.rules
+  'utopia.core.rules.game-logic
   :fact-type-fn :rule-type)
 
 (defn run [game-state action]
@@ -135,7 +98,7 @@
     {:actions actions
      :history (conj (:history game-state) {:action action
                                            :tick (:tick game-state)
-                                           :state (:state game-state)})
+                                           :game-state game-state})
      :errors errors
      :state new-state
      :tick (inc (:tick game-state))}))
