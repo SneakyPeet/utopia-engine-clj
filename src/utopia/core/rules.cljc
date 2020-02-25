@@ -5,6 +5,7 @@
                                           fire-rules query ]])
             [utopia.core.rules.boilerplate :as b]
             [utopia.core.entities :as e]
+            [utopia.core.universe :as u]
             [utopia.core.rules.game-logic]
             [utopia.core.rules.search]))
 
@@ -13,10 +14,9 @@
 
 (defn- game-state->facts [game-state]
   (let [{:keys [actions state]} game-state
-        {:keys [regions location]} state]
+        {:keys [regions]} (or state (u/initial-state))]
     (->> [[(b/->PreviousActions actions)
-           (b/->PreviousState state)
-           (b/->StateEntity location)]
+           (b/->PreviousState state)]
           (map b/->StateEntity (vals regions))]
          (reduce into))))
 
@@ -55,6 +55,7 @@
 (defsession ^:private session
   'utopia.core.rules
   'utopia.core.rules.game-logic
+  'utopia.core.rules.search
   :fact-type-fn :rule-type)
 
 

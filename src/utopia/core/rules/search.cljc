@@ -8,24 +8,13 @@
             [utopia.core.entities :as e]
             [utopia.core.universe :as u]))
 
+(clear-ns-productions!)
 
-;; Movement
 
-#_(defrule go-to-workshop
-  [CurrentAction (e/=GoToWorkshop? action)]
+(defrule can-search-when-regions-are-searchable
+  [:StateEntity (= ?entity (:entity this)) (true? (:searchable? ?entity))]
   =>
-  (insert! (->Effect (e/->ChangeLocation :workshop))))
-
-;; Search
-
-#_(defrule can-search-when-searchable-regions-and-in-workshop
-  [:or
-   [StateEntity (e/=Location? entity) (= :workshop (:id entity))]
-   [Effect (e/=ChangeLocation? effect) (= :workshop (:id effect))]]
-  [?regions <- (acc/all) :from [StateEntity (e/=Region? entity) (true? (:searchable? entity))]]
-  [:test (not (empty? ?regions))]
-  =>
-  (insert! (->NextAction (e/->Search))))
+  (insert! (b/->NextAction (e/->SearchRegion (:id ?entity)))))
 
 
 #_(defrule search-lets-you-choose-searchable-regions
@@ -41,11 +30,3 @@
   [CurrentAction (e/=Rest? action)]
   =>
   (insert! (->Effect (e/->RemoveDayFromTimeTrack))))
-
-
-;; Effecfs
-
-#_(defrule location-change-effect
-  [:Effect [{effect :effect}] (e/=ChangeLocation? effect) (= ?location (:location effect))]
-  =>
-  (insert! (b/->StateChange #(assoc-in % [:location :id] ?location))))

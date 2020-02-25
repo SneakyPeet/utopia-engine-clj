@@ -16,14 +16,16 @@
   (let [available-actions @(rf/subscribe [::available-actions])]
     [:div
      [:h1.heading "Actions"]
-     [:div.buttons
+     [:div
       (->> available-actions
            (map-indexed
             (fn [i a]
-              [:button.button.is-fullwidth
-               {:key i
+              [:div.has-background-white-ter
+               {:key i :style {:cursor "pointer" :margin-bottom "10px" :padding "10px"}
                 :on-click #(rf/dispatch [::evt/run-action a])}
-               (e/get-name a)])))]]))
+               [:strong (e/get-name a)]
+               (when-not (empty? a)
+                 [:div [:small (str (into {} a))]])])))]]))
 
 
 (rf/reg-sub

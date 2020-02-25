@@ -38,5 +38,4 @@
 
 
 (defn initial-state []
-  {:location (e/->Location :workshop)
-   :regions (regions)})
+  {:regions (regions)})
