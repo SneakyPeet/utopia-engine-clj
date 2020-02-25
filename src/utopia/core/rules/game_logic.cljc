@@ -35,7 +35,7 @@
 
 
 (defrule in-progress-game-can-be-restarted
-  [:PreviousState (not (nil? (:state this)))]
+  [:CurrentAction]
   =>
   (insert! (b/->NextAction (e/->Restart))))
 
@@ -43,4 +43,4 @@
 (defrule initialize-effect-resets-to-initial-state
   [:Effect (e/=Initialize? (:effect this))]
   =>
-  (insert! (b/->StateChange (constantly (u/initial-state)))))
+  (insert! (b/->StateChange (fn [_] (u/initial-state)))))

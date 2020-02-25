@@ -86,23 +86,6 @@
   'utopia.core.rules.game-logic
   :fact-type-fn :rule-type)
 
-(defn run [game-state action]
-  (let [session (-> session
-                    (insert (b/->CurrentAction action))
-                    (insert-all (game-state->facts game-state))
-                    (fire-rules))
-        new-state (:?state (first (query session get-new-state)))
-        actions (map :?action (query session get-next-actions))
-        effects (map :?effect (query session get-effects))
-        errors (map :?message (query session get-game-errors))]
-    {:actions actions
-     :history (conj (:history game-state) {:action action
-                                           :tick (:tick game-state)
-                                           :game-state game-state})
-     :errors errors
-     :state new-state
-     :tick (inc (:tick game-state))}))
-
 
 (defn initial-game-state []
   {:actions [(e/->StartGame)]
@@ -111,6 +94,29 @@
    :errors []
    :state nil
    :tick 0})
+
+
+(defn run [game-state action]
+  (if (e/=Restart? action)
+    (initial-game-state)
+    (let [session (-> session
+                      (insert (b/->CurrentAction action))
+                      (insert-all (game-state->facts game-state))
+                      (fire-rules))
+          new-state (:?state (first (query session get-new-state)))
+          actions (map :?action (query session get-next-actions))
+          effects (map :?effect (query session get-effects))
+          errors (map :?message (query session get-game-errors))]
+      {:actions actions
+       :history (conj (:history game-state) {:action action
+                                             :tick (:tick game-state)
+                                             :game-state game-state})
+       :errors errors
+       :state new-state
+       :tick (inc (:tick game-state))})))
+
+
+
 
 
 (comment
