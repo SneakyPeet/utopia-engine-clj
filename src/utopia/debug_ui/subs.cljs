@@ -8,6 +8,12 @@
 
 
 (rf/reg-sub
+ ::tick
+ (fn [_ _] (rf/subscribe [::game-state]))
+ :tick)
+
+
+(rf/reg-sub
  ::history
  :history)
 

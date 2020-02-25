@@ -102,6 +102,10 @@
   [:NextAction (= ?action (:action this))])
 
 
+(defquery get-effects []
+  [:Effect (= ?effect (:effect this))])
+
+
 (defquery get-game-errors []
   [:GameError (= ?message (:message this))])
 
@@ -126,18 +130,24 @@
                     (fire-rules))
         new-state (:?state (first (query session get-new-state)))
         actions (map :?action (query session get-next-actions))
+        effects (map :?effect (query session get-effects))
         errors (map :?message (query session get-game-errors))]
     {:actions actions
+     :history (conj (:history game-state) {:action action
+                                           :tick (:tick game-state)
+                                           :state (:state game-state)})
      :errors errors
-     :old-state (:state game-state)
-     :state new-state}))
+     :state new-state
+     :tick (inc (:tick game-state))}))
 
 
 (defn initial-game-state []
   {:actions [(e/->StartGame)]
+   :history '()
    :effects []
    :errors []
-   :state nil})
+   :state nil
+   :tick 0})
 
 
 (comment

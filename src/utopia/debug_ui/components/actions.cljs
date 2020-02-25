@@ -27,17 +27,18 @@
 
 
 (rf/reg-sub
- ::previous-actions
- (fn [_ _] (rf/subscribe [::sub/history]))
- (fn [h _] (->> h (take 50))))
+ ::history
+ (fn [_ _] (rf/subscribe [::sub/game-state]))
+ :history)
 
 
 (defn action-history []
-  (let [history @(rf/subscribe [::previous-actions])]
+  (let [history @(rf/subscribe [::history])
+        tick @(rf/subscribe [::sub/tick])]
     [:div
      [:h1.heading "History"]
      [:ul
       (->> history
            (map-indexed
-            (fn [i {:keys [action tick]}]
-              [:li {:key i} tick ". "(e/get-name action)])))]]))
+            (fn [i {:keys [tick action]}]
+              [:li {:key i} (inc tick) ". "(e/get-name action)])))]]))
