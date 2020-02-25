@@ -120,8 +120,6 @@
 
 
 
-#_(def ^:private rules-session (mk-session 'utopia.rules))
-
 
 (defn- game-state->facts [game-state]
   (let [{:keys [actions state]} game-state
@@ -133,7 +131,7 @@
          (reduce into))))
 
 
-(defsession session 'utopia.core.rules)
+(defsession ^:private session 'utopia.core.rules)
 
 (defn run [game-state action]
   (let [session (-> session #_(mk-session 'utopia.core.rules)
