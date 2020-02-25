@@ -11,7 +11,8 @@
 
 (clear-ns-productions!)
 
-(defrule only-apply-available-actions-are-allowed-to-run
+
+(defrule only-available-actions-are-allowed-to-run
   [:PreviousActions (= ?actions (:actions this))]
   [:CurrentAction (= ?action (:action this)) (= ?action-type (type ?action))]
   [:test (not (contains? (set (map type ?actions)) ?action-type))]
@@ -28,7 +29,7 @@
     (reduce (fn [r f] (f r)) ?state ?state-change-fns))))
 
 
-(defrule start-game-action-triggers-initialize
+(defrule start-game-action-triggers-initialize-effect
   [:CurrentAction (e/=StartGame? (:action this))]
   =>
   (insert! (b/->Effect (e/->Initialize))))

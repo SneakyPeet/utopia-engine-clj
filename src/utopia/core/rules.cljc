@@ -5,55 +5,34 @@
                                           fire-rules query ]])
             [utopia.core.rules.boilerplate :as b]
             [utopia.core.entities :as e]
-            ;rules
-            [utopia.core.rules.game-logic]))
+            [utopia.core.rules.game-logic]
+            [utopia.core.rules.search]))
+
+
+;;; HELPERS
+
+(defn- game-state->facts [game-state]
+  (let [{:keys [actions state]} game-state
+        {:keys [regions location]} state]
+    (->> [[(b/->PreviousActions actions)
+           (b/->PreviousState state)
+           (b/->StateEntity location)]
+          (map b/->StateEntity (vals regions))]
+         (reduce into))))
+
+
+(defn initial-game-state []
+  {:actions [(e/->StartGame)]
+   :history '()
+   :effects []
+   :errors []
+   :state nil
+   :tick 0})
+
+
+;;;; QUERIES
 
 (clear-ns-productions!)
-
-
-;; Movement
-
-#_(defrule go-to-workshop
-  [CurrentAction (e/=GoToWorkshop? action)]
-  =>
-  (insert! (->Effect (e/->ChangeLocation :workshop))))
-
-;; Search
-
-#_(defrule can-search-when-searchable-regions-and-in-workshop
-  [:or
-   [StateEntity (e/=Location? entity) (= :workshop (:id entity))]
-   [Effect (e/=ChangeLocation? effect) (= :workshop (:id effect))]]
-  [?regions <- (acc/all) :from [StateEntity (e/=Region? entity) (true? (:searchable? entity))]]
-  [:test (not (empty? ?regions))]
-  =>
-  (insert! (->NextAction (e/->Search))))
-
-
-#_(defrule search-lets-you-choose-searchable-regions
-  [CurrentAction (e/=Search? action)]
-  [?regions <- (acc/all :entity) :from [StateEntity (e/=Region? entity) (true? (:searchable? entity))]]
-  =>
-  (insert! (->Effect (e/->ChangeLocation :outside)))
-  (insert! (->NextAction (e/->GoToWorkshop)))
-  (insert-all! (map #(->NextAction (e/->SearchRegion (:id %))) ?regions)))
-
-
-#_(defrule resting-takes-time
-  [CurrentAction (e/=Rest? action)]
-  =>
-  (insert! (->Effect (e/->RemoveDayFromTimeTrack))))
-
-
-;; Effecfs
-
-#_(defrule location-change-effect
-  [:Effect [{effect :effect}] (e/=ChangeLocation? effect) (= ?location (:location effect))]
-  =>
-  (insert! (b/->StateChange #(assoc-in % [:location :id] ?location))))
-
-
-;;;; Queries
 
 (defquery get-new-state []
   [:NextState (= ?state (:state this))])
@@ -71,29 +50,12 @@
   [:GameError (= ?message (:message this))])
 
 
-(defn- game-state->facts [game-state]
-  (let [{:keys [actions state]} game-state
-        {:keys [regions location]} state]
-    (->> [[(b/->PreviousActions actions)
-           (b/->PreviousState state)
-           (b/->StateEntity location)]
-          (map b/->StateEntity (vals regions))]
-         (reduce into))))
-
+;;;; SESSION
 
 (defsession ^:private session
   'utopia.core.rules
   'utopia.core.rules.game-logic
   :fact-type-fn :rule-type)
-
-
-(defn initial-game-state []
-  {:actions [(e/->StartGame)]
-   :history '()
-   :effects []
-   :errors []
-   :state nil
-   :tick 0})
 
 
 (defn run [game-state action]
@@ -108,6 +70,7 @@
           effects (map :?effect (query session get-effects))
           errors (map :?message (query session get-game-errors))]
       {:actions actions
+       :effects effects
        :history (conj (:history game-state) {:action action
                                              :tick (:tick game-state)
                                              :game-state game-state})
@@ -116,17 +79,5 @@
        :tick (inc (:tick game-state))})))
 
 
-
-
-
 (comment
-
-  (-> (run (initial-game-state) (e/->StartGame))
-      (run (e/->Search))
-      (run (e/->GoToWorkshop))
-      (select-keys [:actions :state]))
-
-  (run (initial-game-state) (e/->StartGame))
-
-
-  )
+  (run (initial-game-state) (e/->StartGame)))
