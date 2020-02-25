@@ -3,12 +3,12 @@
 
 
 (defn- initial-search []
-  {:a1 nil :a2 nil :a3 nil
-   :b1 nil :b2 nil :b3 nil})
+  {:a1 :open :a2 :open :a3 :open
+   :b1 :open :b2 :open :b3 :open })
 
 
 (defn- initial-search-areas []
-  (->> (range 1 6)
+  (->> (range 6)
        (map #(vec [% (initial-search)]))
        (into {})))
 

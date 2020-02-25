@@ -43,4 +43,7 @@
       (->> history
            (map-indexed
             (fn [i {:keys [tick action]}]
-              [:li {:key i} (inc tick) ". "(e/get-name action)])))]]))
+              [:li {:key i}
+               (inc tick) ". "(e/get-name action)
+               (when-not (empty? action)
+                 [:<> [:br] [:small (str (into {} action))]])])))]]))
