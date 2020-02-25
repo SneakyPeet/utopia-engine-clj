@@ -16,7 +16,7 @@
   [:CurrentAction (= ?action (:action this)) (= ?action-type (type ?action))]
   [:test (not (contains? (set (map type ?actions)) ?action-type))]
   =>
-  (insert! (b/->GameError (str "Invalid Action: " ?action-type))))
+  (insert! (b/->GameError (str "Invalid Action: " (e/get-name ?action)))))
 
 
 (defrule all-state-changes-should-be-applied

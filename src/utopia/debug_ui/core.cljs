@@ -8,11 +8,25 @@
             [utopia.debug-ui.components.state :as state]))
 
 
+(defn errors []
+  (let [errs @(rf/subscribe [::subs/errors])]
+    (when-not (empty? errs)
+      [:ul.has-text-danger
+       (map-indexed
+        (fn [i e]
+          [:li {:key i} e])
+        errs)])))
+
+
 (defn app []
   [:div.container
+
    [:div.columns
+    [:div.column.is-one-quarter
+     [state/previous-state]]
     [:div.column
-     [state/previous-state]]]
+     [errors]]]
+
    [:div.columns
     [:div.column.is-one-quarter
      [actions/actions]]
