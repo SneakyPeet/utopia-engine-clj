@@ -9,16 +9,26 @@
 
 (defn- render-node [node]
   (cond
+    (nil? node) "Not Initialized"
+
     (map? node)
-    [:ul
+    [:div
      (->> node
           (map-indexed
            (fn [i [k v]]
-             [:li {:key i} (str k)])))]))
+             (if (map? v)
+               [:details {:key i}
+                [:summary [:strong (str k)]]
+                [:div {:style {:margin-left "25px"}}
+                 (render-node v)]]
+               [:div [:strong (str k) " "] (render-node v)]))))]
+
+    :else
+    [:span (str node)]))
 
 
 (defn state []
-  (let [current-state @(rf/subscribe [::sub/rules-state])]
+  (let [current-state @(rf/subscribe [::sub/current-state])]
     [:div
      [:h1.heading "State"]
      (render-node current-state)]))

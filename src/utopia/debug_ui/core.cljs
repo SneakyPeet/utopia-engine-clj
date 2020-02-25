@@ -15,12 +15,12 @@
      [actions/actions]]
     [:div.column.is-one-quarter
      [actions/action-history]]
-    [:div.column.is-one-quarter
-     [state/state]]
     [:div.column
+     [state/state]]
+    #_[:div.column
      [:h1 "works"]
      [:p (str @(rf/subscribe [::subs/game-state]))]
-     [:p (str (or @(rf/subscribe [::subs/rules-state]) "nil"))]
+     [:p (str (or @(rf/subscribe [::subs/current-state]) "nil"))]
      [:p (str @(rf/subscribe [::subs/effects]))]
      [:p (str @(rf/subscribe [::subs/errors]))]]]])
 

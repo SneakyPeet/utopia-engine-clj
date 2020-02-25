@@ -19,7 +19,7 @@
 
 
 (rf/reg-sub
- ::rules-state
+ ::current-state
  (fn [_ _] (rf/subscribe [::game-state]))
  :state)
 
