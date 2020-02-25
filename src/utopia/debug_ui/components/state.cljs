@@ -5,9 +5,22 @@
             [utopia.debug-ui.events :as evt]
             [utopia.core.entities :as e]))
 
+(rf/reg-event-db
+ ::toggle-map-node
+ (fn [db [_ k]]
+   (let [toggled-nodes (::toggled-nodes db #{})
+         next (if (contains? toggled-nodes k)
+                (disj toggled-nodes k)
+                (conj toggled-nodes k))]
+     (assoc db ::toggled-nodes next))))
 
 
-(defn- render-node [node]
+(rf/reg-sub
+ ::toggled-nodes
+ ::toggled-nodes)
+
+
+(defn- render-node [toggled-nodes node]
   (cond
     (nil? node) "Not Initialized"
 
@@ -17,18 +30,21 @@
           (map-indexed
            (fn [i [k v]]
              (if (map? v)
-               [:details {:key i}
+               [:details {:key i
+                          :open (contains? toggled-nodes k)
+                          :on-toggle #(rf/dispatch [::toggle-map-node k])}
                 [:summary [:strong (str k)]]
                 [:div {:style {:margin-left "25px"}}
-                 (render-node v)]]
-               [:div [:strong (str k) " "] (render-node v)]))))]
+                 (render-node toggled-nodes v)]]
+               [:div {:key i} [:strong (str k) " "] (render-node toggled-nodes v)]))))]
 
     :else
     [:span (str node)]))
 
 
 (defn state []
-  (let [current-state @(rf/subscribe [::sub/current-state])]
+  (let [current-state @(rf/subscribe [::sub/current-state])
+        toggled-nodes @(rf/subscribe [::toggled-nodes])]
     [:div
      [:h1.heading "State"]
-     (render-node current-state)]))
+     (render-node toggled-nodes current-state)]))
