@@ -29,26 +29,32 @@
  ::toggled-nodes)
 
 
-(defn- render-node [toggled-nodes node]
-  (cond
-    (nil? node) "Not Initialized"
+(defn- render-node
+  ([toggled-nodes node] (render-node toggled-nodes node []))
+  ([toggled-nodes node path]
+   (cond
+     (nil? node) "Not Initialized"
 
-    (map? node)
-    [:div
-     (->> node
-          (map-indexed
-           (fn [i [k v]]
-             (if (map? v)
-               [:details {:key i
-                          :open (contains? toggled-nodes k)
-                          :on-toggle #(rf/dispatch [::toggle-map-node k])}
-                [:summary [:strong (str k)]]
-                [:div {:style {:margin-left "25px"}}
-                 (render-node toggled-nodes v)]]
-               [:div {:key i} [:strong (str k) " "] (render-node toggled-nodes v)]))))]
+     (map? node)
+     [:div
+      (->> node
+           (map-indexed
+            (fn [i [k v]]
+              (let [node-path (conj path k)
+                    open?     (contains? toggled-nodes node-path)]
+                (if (map? v)
+                  [:div {:key i}
+                   [:strong {:style    {:cursor "pointer"}
+                             :on-click #(rf/dispatch [::toggle-map-node node-path])}
+                    (if open? "^ " "> ") (str k)]
+                   (when open?
+                     [:div {:style {:margin-left "12px"}}
+                      (render-node toggled-nodes v node-path)])]
+                  [:div {:key i :style {:margin-left "14px"}}
+                   [:strong (str k) " "] (render-node toggled-nodes v node-path)])))))]
 
-    :else
-    [:span (str node)]))
+     :else
+     [:span (str node)])))
 
 
 (defn state []
