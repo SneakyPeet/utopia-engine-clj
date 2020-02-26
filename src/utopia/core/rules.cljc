@@ -7,16 +7,20 @@
             [utopia.core.entities :as e]
             [utopia.core.universe :as u]
             [utopia.core.rules.game-logic]
-            [utopia.core.rules.search]))
+            [utopia.core.rules.search]
+            [utopia.core.rules.player]
+            [utopia.core.rules.time-track]))
 
 
 ;;; HELPERS
 
 (defn- game-state->facts [game-state]
   (let [{:keys [actions state]} game-state
-        {:keys [regions]} (or state (u/initial-state))]
+        {:keys [regions time-track player]} (or state (u/initial-state))]
     (->> [[(b/->PreviousActions actions)
-           (b/->PreviousState state)]
+           (b/->PreviousState state)
+           (b/->StateEntity time-track)
+           (b/->StateEntity player)]
           (map b/->StateEntity (vals regions))]
          (reduce into))))
 
@@ -56,6 +60,8 @@
   'utopia.core.rules
   'utopia.core.rules.game-logic
   'utopia.core.rules.search
+  'utopia.core.rules.player
+  'utopia.core.rules.time-track
   :fact-type-fn :rule-type)
 
 

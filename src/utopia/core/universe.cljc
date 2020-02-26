@@ -2,6 +2,14 @@
   (:require [utopia.core.entities :as e]))
 
 
+;;;; Timetrack
+
+(defn- time-track []
+  (e/map->Timetrack
+   {:day 1 :dooms-day 16 :skulls 8 :gods-hand-energy 0}))
+
+
+;;;; Search
 (defn- initial-search []
   {:a1 :open :a2 :open :a3 :open
    :b1 :open :b2 :open :b3 :open })
@@ -38,4 +46,6 @@
 
 
 (defn initial-state []
-  {:regions (regions)})
+  {:player (e/map->Player {:max-hit-points 6 :hit-points 0})
+   :time-track (time-track)
+   :regions (regions)})
