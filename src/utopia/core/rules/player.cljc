@@ -63,6 +63,4 @@
   (insert! (b/->StateChange
             #(assoc-in % [:player :hit-points]
                        (min (:max-hit-points ?player)
-                            (+ (:hit-points ?player) ?total-gained)))))
-  (prn "HIT")
-  (prn ?total-gained))
+                            (+ (:hit-points ?player) ?total-gained))))))
