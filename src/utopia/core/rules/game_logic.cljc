@@ -1,7 +1,8 @@
 (ns utopia.core.rules.game-logic
   #?(:cljs (:require-macros [clara.macros :refer [defrule]]))
   (:require #?(:clj [clara.rules :refer :all]
-               :cljs [clara.rules :refer [clear-ns-productions! insert! insert-all! retract!]])
+               :cljs [clara.rules :refer [clear-ns-productions! insert! insert-all!
+                                          insert-unconditional! retract!]])
             [clara.rules :refer [clear-ns-productions! insert! insert-all! retract!]]
             [clara.rules.accumulators :as acc]
             [utopia.core.rules.boilerplate :as b]

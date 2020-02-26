@@ -31,6 +31,15 @@
   (insert! (b/->NextAction (e/->UnconsiousRest))))
 
 
+(defrule only-allowed-to-rest-if-unconsious
+  [?actions <- (acc/all) :from [:NextAction]]
+  =>
+  (let [a-without-rest (filter #(not (e/=UnconsiousRest? (:action %))) ?actions)]
+    (when-not (= (count ?actions) (count a-without-rest))
+      (doseq [a a-without-rest]
+        (retract! a)))))
+
+
 (defrule unconsious-rest-gains-full-life
   [:StateEntity (= ?player (:entity this)) (e/=Player? ?player)]
   [:CurrentAction (e/=UnconsiousRest? (:action this))]
