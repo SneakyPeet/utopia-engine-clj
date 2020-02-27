@@ -46,6 +46,6 @@
 
 
 (defn initial-state []
-  {:player (e/map->Player {:max-hit-points 6 :hit-points 0})
+  {:player (e/map->Player {:max-hit-points 6 :hit-points 4})
    :time-track (time-track)
    :regions (regions)})

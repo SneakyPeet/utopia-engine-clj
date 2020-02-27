@@ -29,7 +29,8 @@
 
    [:div.columns
     [:div.column.is-one-quarter
-     [actions/actions]]
+     [actions/actions]
+     [actions/effects]]
     [:div.column.is-one-quarter
      [actions/action-history]]
     [:div.column

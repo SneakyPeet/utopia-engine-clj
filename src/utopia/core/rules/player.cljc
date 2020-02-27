@@ -47,6 +47,22 @@
   (insert! (b/->Effect (e/->GainHitPoints (:max-hit-points ?player)))))
 
 
+(defrule when-health-below-zero-allow-ded
+  [:NextState (= ?hit-points (get-in this [:state :player :hit-points]))]
+  [:test (< ?hit-points 0)]
+  =>
+  (insert! (b/->NextAction (e/->Die))))
+
+
+(defrule only-allowed-to-die-if-dead
+  [?actions <- (acc/all) :from [:NextAction]]
+  =>
+  (let [a-without-rest (filter #(not (e/=Die? (:action %))) ?actions)]
+    (when-not (= (count ?actions) (count a-without-rest))
+      (doseq [a a-without-rest]
+        (retract! a)))))
+
+
 (def total-hit-points-gained
   (acc/reduce-to-accum
    (fn [value effect]

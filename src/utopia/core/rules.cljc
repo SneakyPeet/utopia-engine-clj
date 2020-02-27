@@ -66,7 +66,7 @@
 
 
 (defn run [game-state action]
-  (if (e/=Restart? action)
+  (if (or (e/=Die? action) (e/=Restart? action))
     (initial-game-state)
     (let [session (-> session
                       (insert (b/->CurrentAction action))

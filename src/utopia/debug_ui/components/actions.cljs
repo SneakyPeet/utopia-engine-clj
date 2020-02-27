@@ -47,3 +47,22 @@
                (inc tick) ". "(e/get-name action)
                (when-not (empty? action)
                  [:<> [:br] [:small (str (into {} action))]])])))]]))
+
+
+
+(rf/reg-sub
+ ::effects
+ (fn [_ _] (rf/subscribe [::sub/game-state]))
+ :effects)
+
+
+(defn effects []
+  (let [effects @(rf/subscribe [::effects])]
+    [:div
+     [:h1.heading "Effects of Previous Action"]
+     [:ul
+      (->> effects
+           (map-indexed
+            (fn [i e]
+              [:li {:key i}
+               [:strong (e/get-name e)]])))]]))

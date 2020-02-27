@@ -10,9 +10,12 @@
 
 (defentity StartGame [])
 (defentity Restart [])
+(defentity Die [])
 
 (defentity Rest [])
 (defentity UnconsiousRest [])
+
+
 
 
 (defentity SearchRegion [id])
@@ -24,6 +27,7 @@
 (defentity DaysPass [days])
 (defentity GainHitPoints [hit-points])
 (defentity LooseHitPoints [hit-points])
+
 
 ;;;; Universe
 (defentity Player [max-hit-points hit-points])
